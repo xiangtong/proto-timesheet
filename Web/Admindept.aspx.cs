@@ -403,7 +403,7 @@ namespace Workday.Web
             g.Attributes["CurrentSortDir"] = (d == SortDirection.Ascending ? "DESC" : "ASC");
         }
 
-        //to test git function
+        
         protected static DataTable ConvertListToDataTable<IShowDepts>(List<IShowDepts> items)
         {
             DataTable dataTable = new DataTable(typeof(IShowDepts).Name);

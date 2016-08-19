@@ -10,26 +10,32 @@ namespace Workday.Common
     // to show users info on gridview
     public interface IShowUsers
     {
-         int UserId { get; set; }
+        int UserId { get; set; }
 
-         string Email { get; set; }
+        string Email { get; set; }
 
-         string UserName { get; set; }
+        string UserName { get; set; }
 
-         UserStatus Status { get; set; }
+        UserStatus Status { get; set; }
 
-         string StatusString { get; set; }
+        string StatusString { get; set; }
 
-         int DeptId { get; set; }
+        int DeptId { get; set; }
 
-         string DeptName { get; set; }
+        string DeptName { get; set; }
 
-         UserIsAdmin IsAdmin { get; set; }
+        string IsManager { get; set; }
 
-         DateTime CreateDate { get; set; }
+        int Manager { get; set; }
+
+        UserIsAdmin IsAdmin { get; set; }
+
+        DateTime CreateDate { get; set; }
+
+        string Disenlinkurl { get; set; }
     }
 
-    public class User
+    public class User:IShowUsers
     {
         public int UserId { get; set; }
 
@@ -41,9 +47,19 @@ namespace Workday.Common
 
         public int DeptId { get; set; }
 
+        public string DeptName { get; set; }  //only used by IShowUsers for gridview
+
+        public string IsManager { get; set; } //only used by IShowUsers for gridview
+
+        public int Manager { get; set; } //only used by IShowUsers for gridview
+
         public UserStatus Status { get; set; }
 
+        public string StatusString { get; set; } //only used by IShowUsers for gridview
+
         public UserIsAdmin IsAdmin { get; set; }
+
+        public string Disenlinkurl { get; set; } //only used by IShowUsers for gridview
 
         public DateTime CreateDate { get; set; }
 

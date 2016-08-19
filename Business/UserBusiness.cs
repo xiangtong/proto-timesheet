@@ -74,9 +74,29 @@ namespace Workday.Business
             return user;
         }
 
+        //this is the old mothed, only used by admin.aspx, should be deprecated. the new mothed is GetAllUser2
         public static AllUser GetAllUsers(AllUser users)
         {
             return UserDataAccess.GetAllUser(users);
+        }
+
+        public static List<IShowUsers> GetAllUsers2()
+        {
+            List<IShowUsers> Users = UserDataAccess.GetAllUser2();
+            if (Users != null)
+            {
+                foreach (IShowUsers item in Users)
+                {
+                    if (item.Status == Common.UserStatus.Normal)
+                        item.StatusString = "Normal";
+                    else if (item.Status == Common.UserStatus.Forbidden)
+                        item.StatusString = "Disabled";
+                    if (item.UserId == item.Manager)
+                        item.IsManager = "Manager";
+                    item.Disenlinkurl = "admin2.aspx?userid=" + item.UserId + "&currentstatus=" + Convert.ToString((int)item.Status);
+                }
+            }
+            return Users;
         }
 
         public static bool ChangeUserStatus(int userid,int currentstatus)

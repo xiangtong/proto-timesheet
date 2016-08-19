@@ -153,7 +153,7 @@ namespace Workday.DataAccess
             return ds;
         }
 
-        //this is the old mothed, should be deprecated. the new mothed is GetAllUser2
+        //this is the old mothed, only used by admin.aspx, should be deprecated. the new mothed is GetAllUser2
         public static AllUser GetAllUser(Common.AllUser users)
         {
             //DataSet ds = new DataSet();
@@ -162,12 +162,61 @@ namespace Workday.DataAccess
             return users;
         }
 
-        //public static List<IShowUsers> GetAllUser2()
-        //{
-        //    List<IShowUsers> Users = new List<IShowUsers>();
-        //    string sql = "";
+        public static List<IShowUsers> GetAllUser2()
+        {
+            List<IShowUsers> Users = new List<IShowUsers>();
+            string sql = "SELECT u.UserID,u.Email,u.UserName,u.UserStatus,d.DeptId, d.DeptName,d.Manager,u.CreateDate from [User1] as u left join Dept as d on u.BelongToDept=d.DeptId order by UserId";
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
 
-        //}
+                try
+                {
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    SqlDataReader result = cmd.ExecuteReader();
+
+                    if (result.HasRows)
+                    {
+                        while (result.Read())
+                        {
+                            User user = new User();
+                            user.UserId = result.GetInt32(0);
+                            user.Email = result.GetString(1);
+                            user.UserName = result.GetString(2);
+                            if (result.GetInt32(3) == 0)
+                                user.Status = Common.UserStatus.Normal;
+                            else if(result.GetInt32(3)==1)
+                                user.Status = Common.UserStatus.Forbidden;
+                            if (!result.IsDBNull(4))
+                                user.DeptId = result.GetInt32(4);
+                            if (!result.IsDBNull(5))
+                                user.DeptName = result.GetString(5);
+                            if (!result.IsDBNull(6))
+                                user.Manager = result.GetInt32(6);
+                            user.CreateDate = result.GetDateTime(7);
+                            Users.Add(user);
+                        }
+                    }
+                    else
+                    {
+                        Users = null;
+                    }
+
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+
+                conn.Close();
+            }
+
+            return Users;
+        }
 
 
         public static SecretQuestion GetSecretQuestion()
@@ -315,6 +364,40 @@ namespace Workday.DataAccess
                 return false;
             else
                 return true;
+        }
+
+        public static bool ChangeUserDept(User user)
+        {
+            bool ifUpdate = false;
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = _connectionString;
+            conn.Open();
+            if (conn.State == System.Data.ConnectionState.Open)
+            {
+                try
+                {
+                    string sql = "update [User1] set Dept=@value1 where UserName=@value2";
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@value1", user.DeptId);
+                    cmd.Parameters.AddWithValue("@value2", user.UserId);
+                    var result = cmd.ExecuteNonQuery();
+                    if (result != 0 & result != -1)
+                    {
+                        ifUpdate = true;
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                conn.Close();
+            }
+            return ifUpdate;
+
         }
     }
 
