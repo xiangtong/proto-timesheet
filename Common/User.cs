@@ -20,7 +20,7 @@ namespace Workday.Common
 
         string StatusString { get; set; }
 
-        int DeptId { get; set; }
+        int? DeptId { get; set; }
 
         string DeptName { get; set; }
 
@@ -45,7 +45,7 @@ namespace Workday.Common
 
         public string Password { get; set; }
 
-        public int DeptId { get; set; }
+        public int? DeptId { get; set; }
 
         public string DeptName { get; set; }  //only used by IShowUsers for gridview
 
@@ -82,12 +82,15 @@ namespace Workday.Common
         }
 
      }
-
-
+    
     public class AllUser
     {
         public DataSet AllUserSet { get; set; }
     }
 
-
+    public class validatresult
+    {
+        public int resultid { get; set; }
+        public string resultdesc { get; set; }
+    }
 }

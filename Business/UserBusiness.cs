@@ -117,6 +117,36 @@ namespace Workday.Business
             questionlist = temp.QuestionList;
             return questionlist;
         }
+
+        public static bool ChangeUserDept(User user)
+        {
+            return UserDataAccess.ChangeUserDept(user);
+        }
+
+        public static validatresult ChangeDeptValidate(User user)
+        {
+            validatresult result = new validatresult();
+            List<IShowUsers> users = new List<IShowUsers>();
+            users = UserDataAccess.GetAllUser2();
+            foreach (User u in users)
+            {
+                if (u.UserId == user.UserId)
+                {
+                    if (u.DeptId == user.DeptId)
+                    {
+                        // no change,return -1
+                        result.resultid = -1;
+                        result.resultdesc = "No Change";
+                        return result;
+                    }
+                }
+            }
+            // validate successfully. you could update 
+            result.resultid = 0;
+            result.resultdesc = "you could change!";
+            return result;
+
+        }
     }
 
 }

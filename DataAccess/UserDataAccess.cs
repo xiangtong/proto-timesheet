@@ -103,7 +103,15 @@ namespace Workday.DataAccess
 
                     try
                     {
-                        string sql = "insert into [User1] (Email, UserName, Password, UserStatus, IsAdmin,CreateDate) values (@value1, @value2, @value3,@value4, @value5,@value6); select @@identity;";
+                        string sql;
+                        if (user.DeptId.HasValue)
+                        {
+                            sql = "insert into [User1] (Email, UserName, Password, UserStatus, IsAdmin,CreateDate,BelongToDept) values (@value1, @value2, @value3,@value4, @value5,@value6,@value7); select @@identity;";
+                        }
+                        else
+                        {
+                            sql = "insert into [User1] (Email, UserName, Password, UserStatus, IsAdmin,CreateDate) values (@value1, @value2, @value3,@value4, @value5,@value6); select @@identity;";
+                        }
                         SqlCommand cmd = new SqlCommand(sql, conn);
                         cmd.Parameters.AddWithValue("@value1", user.Email);
                         cmd.Parameters.AddWithValue("@value2", user.UserName);
@@ -111,6 +119,8 @@ namespace Workday.DataAccess
                         cmd.Parameters.AddWithValue("@value4", UserStatusint);
                         cmd.Parameters.AddWithValue("@value5", IsAdminint);
                         cmd.Parameters.AddWithValue("@value6", now);
+                        if(user.DeptId.HasValue)
+                            cmd.Parameters.AddWithValue("@value7",user.DeptId);
                         var result = cmd.ExecuteScalar();
 
                         if (result != null && result != DBNull.Value)
@@ -376,7 +386,7 @@ namespace Workday.DataAccess
             {
                 try
                 {
-                    string sql = "update [User1] set Dept=@value1 where UserName=@value2";
+                    string sql = "update [User1] set BelongToDept=@value1 where UserId=@value2";
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@value1", user.DeptId);
                     cmd.Parameters.AddWithValue("@value2", user.UserId);

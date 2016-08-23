@@ -118,6 +118,11 @@
             <div class="col-md-6"><input type="text" class="form-control" name="password2" id="pass2" value="The default password:111111" onblur="validateText(this)" /></div>
             <div class="col-md-4" ><span id="passerr2"></span></div>
         </div>
+         <div class="row">
+            <div class="col-md-2">Select Dept</div>
+            <div class="col-md-6">
+                <asp:DropDownList ID="Dept_Drop" runat="server"></asp:DropDownList> </div>
+        </div>
         <div class="row">
             <div class="col-md-12">
                 <input type="submit" class="btn btn-primary" value="Add" onclick="return validateForm()" />
