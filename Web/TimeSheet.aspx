@@ -3,12 +3,53 @@
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="body" runat="server">
     <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true">         </asp:ScriptManager> 
+ <script type="text/javascript">     
+     function controlbutton() {
+         PageMethods.ButtonControl(0,sufunc,erfunc)
+     }
+     function GetNotifyMsg() {
+         PageMethods.GetNotify(0, sucfunc, errfunc)
+     }
+     //disable or enable button 
+     function sufunc(i) {
+         if(i==0){
+             document.getElementById("ClockIn").disabled=false;
+             document.getElementById("ClockOut").disabled=true;
+         }
+         else if(i==1){
+             document.getElementById("ClockIn").disabled=true;
+             document.getElementById("ClockOut").disabled=false;
+         }
+         else if(i==2){
+             document.getElementById("ClockIn").disabled=true;
+             document.getElementById("ClockOut").disabled=true;
+         }
+         GetNotifyMsg()
+     }
+
+     function erfunc(err) {
+         alert("Error to control button" );
+     }
+
+     function sucfunc(time) {
+         document.getElementById("notifymsg").innerHTML = time;
+     }
+
+     function errfunc() {
+         document.getElementById("notifymsg").innerHTML = "unknown error message!"
+     }
+         </script>
 <div id="container">
  <%--           <asp:Calendar ID="Calendar1" runat="server"></asp:Calendar>--%>
     </div>
-    <p id="1">default text</p>
+    <p id="notifymsg">default text</p>
     <video id="video" width="320" height="240" autoplay="autoplay"></video>
     <button id="snap" onclick="snapandupload();return false">拍照和上传</button>
+    <script>
+        controlbutton();
+    </script>
+    <button ID="ClockIn" onclick="snapandupload(0);return false">ClockIn</button>
+    <button ID="ClockOut"  onclick="snapandupload(1);return false">ClockOut</button>
     <canvas id="canvas" width="320" height="240" style="visibility:hidden" ></canvas>
     <img id="testimage" width="320" height="240" style="visibility:hidden" />
      <%--<asp:Image ID="capresult" Width="320" Height="240" runat="server" Visible="true" />--%>
@@ -54,7 +95,7 @@
             //});
         }, false);
 
-        function snapandupload() {
+        function snapandupload(type) {
             if (video.readyState == 4) {
                 var canvas = document.getElementById("canvas");
                 var context = canvas.getContext("2d");
@@ -64,14 +105,15 @@
                 var base64 = image.src;
                 //alert(base64)
                 //upload(base64);
-                PageMethods.Upload(base64,sfunc,efunc)
+                PageMethods.Upload(base64,type,sfunc,efunc)
             }
         }
             //if upload success, show the uploaded image (get binary from DB)
         function sfunc(imageurl) {
             document.getElementById("testimage").style.visibility = "visible"
             document.getElementById("testimage").src = imageurl
-            alert("stop")
+            controlbutton()
+            //alert("stop")
         }
 
         function efunc(err) {
