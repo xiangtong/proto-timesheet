@@ -6,6 +6,7 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Workday.Business;
+using Workday.Common;
 
 namespace Workday.Web
 {
@@ -14,34 +15,56 @@ namespace Workday.Web
         protected void Page_Load(object sender, EventArgs e)
         {
             //ButtonControl();
-                //just for debug, reader from db and show image.
-                //Common.TimeSheet newsheet = new Common.TimeSheet();
-                //newsheet.TimeSheetId = new Guid("3EA9B686-B3DA-4C4A-B758-1EE28FCFC544");
-                //Byte[] imgcontent = TimeSheetBusiness.GetStartImageByID(newsheet);
-                //string base64string = Convert.ToBase64String(imgcontent, 0, imgcontent.Length);
-                //string imageurl = @"data:image/png;base64," + base64string;
-                //capresult.ImageUrl = imageurl;
+            //just for debug, reader from db and show image.
+            //Common.TimeSheet newsheet = new Common.TimeSheet();
+            //newsheet.TimeSheetId = new Guid("3EA9B686-B3DA-4C4A-B758-1EE28FCFC544");
+            //Byte[] imgcontent = TimeSheetBusiness.GetStartImageByID(newsheet);
+            //string base64string = Convert.ToBase64String(imgcontent, 0, imgcontent.Length);
+            //string imageurl = @"data:image/png;base64," + base64string;
+            //capresult.ImageUrl = imageurl;
 
-                //just for debug. reponse front end javascript upload method ajax request.
-                //if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                //{
-                //    string image = Request.Form["image"];
-                //    string filename = DateTime.Now.ToString();
-                //    if (image != null & image != "")
-                //    {
-                //        var parts = image.Split(new char[] { ',' }, 2);
-                //        var bytes = Convert.FromBase64String(parts[1]);
-                //        var path = HttpContext.Current.Server.MapPath(string.Format("~/{0}.png", filename));
-                //        System.IO.File.WriteAllBytes(path, bytes);
-                //        //Byte[] imgcontent = System.IO.File.ReadAllBytes(path);
-                //        //string base64string = Convert.ToBase64String(imgcontent, 0, imgcontent.Length);
-                //        //string imageurl = @"data:image/png;base64," + base64string;
-                //        //Response.Write(imageurl);
-                //        //capresult.ImageUrl = imageurl;
+            //just for debug. reponse front end javascript upload method ajax request.
+            //if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            //{
+            //    string image = Request.Form["image"];
+            //    string filename = DateTime.Now.ToString();
+            //    if (image != null & image != "")
+            //    {
+            //        var parts = image.Split(new char[] { ',' }, 2);
+            //        var bytes = Convert.FromBase64String(parts[1]);
+            //        var path = HttpContext.Current.Server.MapPath(string.Format("~/{0}.png", filename));
+            //        System.IO.File.WriteAllBytes(path, bytes);
+            //        //Byte[] imgcontent = System.IO.File.ReadAllBytes(path);
+            //        //string base64string = Convert.ToBase64String(imgcontent, 0, imgcontent.Length);
+            //        //string imageurl = @"data:image/png;base64," + base64string;
+            //        //Response.Write(imageurl);
+            //        //capresult.ImageUrl = imageurl;
 
-                //    }
-                //}
+            //    }
+            //}
+            if (!IsPostBack)
+            {
+                Calendar1.SelectionMode = CalendarSelectionMode.Day;
+                Calendar1.FirstDayOfWeek = (FirstDayOfWeek)1;
+                DateTime today = DateTime.Today;
+                Calendar1.SelectedDate = today;
+                DateTime Monday = today.AddDays(-(int)today.DayOfWeek + 1);
+                //DateTime Monday = today.AddDays(-10);
+                DateTime Sunday = today.AddDays(-(int)today.DayOfWeek + 7);
+                if (HttpContext.Current.Session["UserID"] != null)
+                {
+                    int userid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
+                    List<TsForView> TimeSheets = new List<TsForView>();
+                    List<TsForView> MTimeSheets = new List<TsForView>();
+                    TimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 0);
+                    MTimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 1);
+                    TimeSheetGridView.DataSource = TimeSheets;
+                    TimeSheetGridView.DataBind();
+                    ManagerTimeSheetGridView.DataSource = MTimeSheets;
+                    ManagerTimeSheetGridView.DataBind();
+                }
             }
+       }
 
         [WebMethod(EnableSession = true)]
         public static string Upload(string base64,int type)
@@ -53,7 +76,6 @@ namespace Workday.Web
             String Time = now.ToString("HH:mm:ss");
             string IP = HttpContext.Current.Request.UserHostAddress;
             bool ifaddtime = false;
-
             if (HttpContext.Current.Session["UserID"] != null)
             {
                 int userid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
@@ -73,7 +95,6 @@ namespace Workday.Web
                     newsheet.EndIp = IP;
                     newsheet.EndImage = bytes;
                 }
-
                 ifaddtime = TimeSheetBusiness.AddTimeSheet(newsheet,type);
                 if (ifaddtime)
                 {
@@ -84,12 +105,10 @@ namespace Workday.Web
                 }
             }
             return "Fail";
-
             //just for debug, write image to file
             //var path = HttpContext.Current.Server.MapPath(string.Format("~/{0}.png", now.ToString("MM-dd-yyyy-HH-mm-ss")));
             //System.IO.File.WriteAllBytes(path, bytes);
             //return "success!";
-
         }
 
         //just for debug
@@ -115,23 +134,14 @@ namespace Workday.Web
                 if (verify.StartTime != null & verify.EndTime != null)
                 { //have clockin and clockout
                     i = 2;
-                    //ClockIn.Enabled = false;
-                    //ClockOut.Enabled = false;
-                    //NotifyMsg.Text = "You have clockin at " + verify.StartTime + " and clock out at " + verify.EndTime;
                 }
                 else if (verify.StartTime != null & verify.EndTime == null)
                 { //have clockin but not clockout
                     i = 1;
-                    //ClockIn.Enabled = false;
-                    //ClockOut.Enabled = true;
-                    //NotifyMsg.Text = "You have clockin at " + verify.StartTime;
                 }
                 else if (verify.StartTime == null & verify.EndTime == null)
                 { //not clockin and clockout
                     i = 0;
-                    //ClockIn.Enabled = true;
-                    //ClockOut.Enabled = false;
-                    //NotifyMsg.Text = "You do not clockin today. Please clock in now";
                 }
             }
             return i;
@@ -165,5 +175,78 @@ namespace Workday.Web
             }
             return time;
         }
+
+        protected void Calendar1_DayRender(object sender, DayRenderEventArgs e)
+        {
+            if (e.Day.Date > DateTime.Today)
+            {
+                e.Day.IsSelectable = false;
+            }
+            DateTime SelectDay = Calendar1.SelectedDate;
+            DateTime Monday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 1);
+            DateTime Sunday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 7);
+            if(e.Day.Date<=Sunday & e.Day.Date >= Monday)
+            {
+                e.Cell.BackColor = System.Drawing.Color.Gray;
+            }
+        }
+
+        protected void TimeSheetGridView_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            GridView gridView = (GridView)sender;
+            if (e.Row.RowType == DataControlRowType.DataRow & e.Row.RowState != (DataControlRowState.Edit | DataControlRowState.Alternate))
+            {   //when in normal mode( not edit and not sorting)
+                TsForView TimeSheet = ((TsForView)e.Row.DataItem);
+                Image rrimg = e.Row.FindControl("RRimg") as Image;
+                rrimg.ImageUrl = TimeSheet.TsRRImgUrl;
+              }
+        }
+
+        protected void Calendar1_SelectionChanged(object sender, EventArgs e)
+        {
+            DateTime  SelectDay = Calendar1.SelectedDate;
+            DateTime Monday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 1);
+            //DateTime Monday = SelectDay.AddDays(-10);
+            DateTime Sunday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 7);
+            if (HttpContext.Current.Session["UserID"] != null)
+            {
+                int userid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
+                List<TsForView> TimeSheets = new List<TsForView>();
+                List<TsForView> MTimeSheets = new List<TsForView>();
+                TimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 0);
+                MTimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 1);
+                TimeSheetGridView.DataSource = TimeSheets;
+                TimeSheetGridView.DataBind();
+                ManagerTimeSheetGridView.DataSource = MTimeSheets;
+                ManagerTimeSheetGridView.DataBind();
+            }
+        }
+
+        protected void ManagerTimeSheetGridView_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            GridView gridView = (GridView)sender;
+            if (e.Row.RowType == DataControlRowType.DataRow & e.Row.RowState != (DataControlRowState.Edit | DataControlRowState.Alternate))
+            {   //when in normal mode( not edit and not sorting)
+                TsForView TimeSheet = ((TsForView)e.Row.DataItem);
+                Image rrimg = e.Row.FindControl("RRimg0") as Image;
+                rrimg.ImageUrl = TimeSheet.TsRRImgUrl;
+                if (TimeSheet.StartImage != null)
+                {
+                    Image Simg = e.Row.FindControl("Simg") as Image;
+                    string imageurl= @"data:image/png;base64," + Convert.ToBase64String(TimeSheet.StartImage, 0, TimeSheet.StartImage.Length);
+                    Simg.ImageUrl = imageurl;
+                    //Simg.Attributes.Add("OnMouseOver", "popupsimg(imageurl);");
+                    //Simg.Attributes.Add("OnMouseOver", " this.src = '/img/approve.jpg'");
+                }
+                if (TimeSheet.EndImage != null)
+                {
+                    Image Eimg = e.Row.FindControl("Eimg") as Image;
+                    string imageurl2 = @"data:image/png;base64," + Convert.ToBase64String(TimeSheet.EndImage, 0, TimeSheet.EndImage.Length);
+                    Eimg.ImageUrl = imageurl2;
+                    //Eimg.Attributes.Add("OnMouseOver", "popupeimg(imageurl2);");
+                }
+            }
+        }
+    
     }
 }

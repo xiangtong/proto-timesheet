@@ -28,4 +28,27 @@ namespace Workday.Common
         public string WorkContent { get; set; }
 
     }
+
+    public class TsForView : TimeSheet
+    {
+        public string UserName { get; set; }
+
+        public string WorkDuration { get; set; }
+
+        public TsReviewResult ReviewResult { get; set; }
+
+        public string TsRRImgUrl { get; set; }  //approval img or refuse img or not process img
+
+        public float ApprovedDuration { get; set; }
+
+        public string RefuseReason { get; set; }
+    }
+
+    public enum TsReviewResult
+    {
+        NoProcess,
+        Approved,
+        Refused,
+    }
+
 }

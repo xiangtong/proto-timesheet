@@ -14,6 +14,15 @@ namespace Workday.DataAccess
 
         public static bool AddTimeSheet(TimeSheet thistime,int type)
         {  //type=0 means clockin, type=1 means clockout
+
+            if (type == 0 & GetTimeIdByUserIdAndDate(thistime)!=null)
+            {// if there has been row of this user and date, you could not insert another row
+                return false;
+            }
+            else if(type==1 & (VerifyTime(thistime).EndTime!=null& VerifyTime(thistime).EndTime != ""))
+            { //if there has been endtime of this user and date, you could not update it again.
+                return false;
+            }
             using (SqlConnection conn = new SqlConnection(_conn))
             {
                 conn.Open();
@@ -199,6 +208,116 @@ namespace Workday.DataAccess
                 return verifytime;
             }
         }
+
+        public static List<TsForView> GetTimeByUser(int userid, DateTime begindate, DateTime enddate, int type, int deptid = 0)
+        {
+            List<TsForView> TimeViews = new List<TsForView>();
+            using (SqlConnection conn = new SqlConnection(_conn))
+            {
+                conn.Open();
+                string sql;
+                try
+                {
+                    if (deptid == 0 & type == 0)
+                    {// get time of one user for himself
+                        sql = "select * from (select t.UserId,t.WorkDate,t.StartTime,t.EndTime,r.IsReviewed,r.IsApproved,r.RefuseReason,r.ApprovedWorkTime from TimeSheet1 as t  left join TimeReview as r on t.TimeSheetId=r.TimeSheetId) as tv where tv.UserId=@value1 and tv.WorkDate between @value2 and @value3";
+                        SqlCommand cmd = new SqlCommand(sql, conn);
+                        cmd.Parameters.AddWithValue("@value1", userid);
+                        cmd.Parameters.AddWithValue("@value2", begindate);
+                        cmd.Parameters.AddWithValue("@value3", enddate);
+                        SqlDataReader result = cmd.ExecuteReader();
+                        if (result.HasRows)
+                        {
+                            while (result.Read())
+                            {
+                                TsForView TimeView = new TsForView();
+                                TimeView.UserId = result.GetInt32(0);
+                                TimeView.Date = result.GetDateTime(1).ToString();
+                                if (!result.IsDBNull(2))
+                                    TimeView.StartTime = result.GetTimeSpan(2).ToString(@"hh\:mm\:ss");
+                                if (!result.IsDBNull(3))
+                                    TimeView.EndTime = result.GetTimeSpan(3).ToString(@"hh\:mm\:ss");
+                                if(!result.IsDBNull(2)& !result.IsDBNull(3))
+                                {
+                                    TimeSpan duration = result.GetTimeSpan(3) - result.GetTimeSpan(2);
+                                    //float hour = duration.Hours + (float)duration.Minutes / 60 + (float)duration.Seconds / 3600;
+                                    TimeView.WorkDuration = duration.TotalHours.ToString("0.0");
+                                }
+                                if (result.IsDBNull(4))
+                                    TimeView.ReviewResult = Common.TsReviewResult.NoProcess;
+                                else if (result.GetInt32(4) == 1 & result.GetInt32(5) == 0)
+                                    TimeView.ReviewResult = Common.TsReviewResult.Approved;
+                                else if (result.GetInt32(4) == 1 & result.GetInt32(5) == 1)
+                                    TimeView.ReviewResult = Common.TsReviewResult.Refused;
+                                if (!result.IsDBNull(6))
+                                    TimeView.RefuseReason = result.GetString(6);
+                                if (!result.IsDBNull(7))
+                                    TimeView.ApprovedDuration = result.GetFloat(7);
+                                TimeViews.Add(TimeView);
+                            }
+                        }
+                    }
+                    else if (deptid == 0 & type == 1)
+                    {//get time of one user for his managers's review
+                        sql = "select tr.* ,u.UserName from (select t.TimeSheetId,t.UserId,t.WorkDate,t.StartTime,t.StartIp,t.StartImage,t.EndTime,t.EndIp,t.EndImage,r.IsReviewed,r.IsApproved,r.RefuseReason,r.ApprovedWorkTime from (select * from TimeSheet1 where UserId=@value1 and WorkDate between @value2 and @value3) as t left join TimeReview as r on t.TimeSheetId=r.TimeSheetId) as tr join User1 as u on tr.UserId=u.UserId";
+                        SqlCommand cmd = new SqlCommand(sql, conn);
+                        cmd.Parameters.AddWithValue("@value1", userid);
+                        cmd.Parameters.AddWithValue("@value2", begindate);
+                        cmd.Parameters.AddWithValue("@value3", enddate);
+                        SqlDataReader result = cmd.ExecuteReader();
+                        if (result.HasRows)
+                        {
+                            while (result.Read())
+                            {
+                                TsForView TimeView = new TsForView();
+                                TimeView.TimeSheetId = result.GetGuid(0);
+                                TimeView.UserId = result.GetInt32(1);
+                                TimeView.Date = result.GetDateTime(2).ToString();
+                                if (!result.IsDBNull(3))
+                                    TimeView.StartTime = result.GetTimeSpan(3).ToString(@"hh\:mm\:ss");
+                                if (!result.IsDBNull(4))
+                                    TimeView.StartIp = result.GetString(4);
+                                if (!result.IsDBNull(5))
+                                    TimeView.StartImage = (Byte[])result.GetValue(5);
+                                if (!result.IsDBNull(6))
+                                    TimeView.EndTime = result.GetTimeSpan(6).ToString(@"hh\:mm\:ss");
+                                if (!result.IsDBNull(7))
+                                    TimeView.EndIp = result.GetString(7);
+                                if (!result.IsDBNull(8))
+                                    TimeView.EndImage = (Byte[])result.GetValue(8);
+                                if (result.IsDBNull(9))
+                                    TimeView.ReviewResult = Common.TsReviewResult.NoProcess;
+                                else if (result.GetInt32(9) == 1 & result.GetInt32(10) == 0)
+                                    TimeView.ReviewResult = Common.TsReviewResult.Approved;
+                                else if (result.GetInt32(9) == 1 & result.GetInt32(10) == 1)
+                                    TimeView.ReviewResult = Common.TsReviewResult.Refused;
+                                if (!result.IsDBNull(11))
+                                    TimeView.RefuseReason = result.GetString(6);
+                                if (!result.IsDBNull(12))
+                                    TimeView.ApprovedDuration = result.GetFloat(7);
+                                TimeView.UserName = result.GetString(13);
+                                TimeViews.Add(TimeView);
+                            }
+                        }
+                    }
+                    else
+                    {//get time of all users in this dept for manager's review
+
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                conn.Close();
+                return TimeViews;
+            }
+        }
+
     }
 }
 

@@ -38,13 +38,21 @@
      function errfunc() {
          document.getElementById("notifymsg").innerHTML = "unknown error message!"
      }
+
+<%--     function popupsimg() {
+         obj simgobj= document.getElementById('<%=Simg.ClientID%>');
+        }
+
+     function popupeimg() {
+         obj eimgobj = document.getElementById("Eimg");
+        }--%>
          </script>
 <div id="container">
- <%--           <asp:Calendar ID="Calendar1" runat="server"></asp:Calendar>--%>
+
     </div>
     <p id="notifymsg">default text</p>
     <video id="video" width="320" height="240" autoplay="autoplay"></video>
-    <button id="snap" onclick="snapandupload();return false">拍照和上传</button>
+    <%--<button id="snap" onclick="snapandupload();return false">拍照和上传</button>--%>
     <script>
         controlbutton();
     </script>
@@ -53,7 +61,9 @@
     <canvas id="canvas" width="320" height="240" style="visibility:hidden" ></canvas>
     <img id="testimage" width="320" height="240" style="visibility:hidden" />
      <%--<asp:Image ID="capresult" Width="320" Height="240" runat="server" Visible="true" />--%>
-
+    <asp:Calendar ID="Calendar1" runat="server" OnDayRender="Calendar1_DayRender" OnSelectionChanged="Calendar1_SelectionChanged"></asp:Calendar>
+    <br />
+    
     <script type="text/javascript">
         
         window.addEventListener("DOMContentLoaded", function () {
@@ -144,5 +154,53 @@
         //    }
 
     </script>
+    <asp:GridView ID="TimeSheetGridView" AutoGenerateColumns="False" runat="server" OnRowDataBound="TimeSheetGridView_RowDataBound">
+       <Columns>
+            <asp:BoundField HeaderText="Date_" DataField="Date" ReadOnly="true" />
+            <asp:BoundField HeaderText="Start_Time" DataField="StartTime" ReadOnly="true" />
+            <asp:BoundField HeaderText="End_Time" DataField="EndTime" ReadOnly="true" />
+            <asp:BoundField HeaderText="WorkTime(h)" DataField="WorkDuration" ReadOnly="true"/>
+            <asp:TemplateField HeaderText="Review_result" >
+                <ItemTemplate>
+                      <asp:Image ID="RRimg" runat="server" Height="15px" Width="15px" /> <br />
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="Refuse_Reason" DataField="RefuseReason" ReadOnly="true"/>
+            <asp:BoundField HeaderText="Approved(h)" DataField="ApprovedDuration" ReadOnly="true"/>
+        </Columns>
+    </asp:GridView>
+
+    <br />
+    <asp:GridView ID="ManagerTimeSheetGridView" AutoGenerateColumns="False" runat="server" 
+        DataKeyNames="TimeSheetId" OnRowDataBound="ManagerTimeSheetGridView_RowDataBound" >
+       <Columns>
+            <asp:BoundField HeaderText="UserName" DataField="UserName" ReadOnly="true" />
+            <asp:BoundField HeaderText="Date_" DataField="Date" ReadOnly="true" />
+            <asp:BoundField HeaderText="Start_Time" DataField="StartTime" ReadOnly="true" />
+            <asp:BoundField HeaderText="Start_IP" DataField="StartIp" ReadOnly="true" />
+            <asp:TemplateField HeaderText="Start_Img" >
+                <ItemTemplate>
+                      <asp:Image ID="Simg" runat="server" Height="100px" Width="100px" /> <br />
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="End_Time" DataField="EndTime" ReadOnly="true" />
+            <asp:BoundField HeaderText="End_IP" DataField="EndIp" ReadOnly="true" />
+            <asp:TemplateField HeaderText="End_Img" >
+                <ItemTemplate>
+                      <asp:Image ID="Eimg" runat="server" Height="100px" Width="100px" ClientIDMode="Static"/> <br />
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="WorkTime(h)" DataField="WorkDuration" ReadOnly="true"/>
+            <asp:TemplateField HeaderText="Review_result" >
+                <ItemTemplate>
+                      <asp:Image ID="RRimg0" runat="server" Height="15px" Width="15px" /> <br />
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="Refuse_Reason" DataField="RefuseReason" ReadOnly="true"/>
+            <asp:BoundField HeaderText="Approved(h)" DataField="ApprovedDuration" ReadOnly="true"/>
+        </Columns>
+    </asp:GridView>
+
+    <br />
 
 </asp:Content>
