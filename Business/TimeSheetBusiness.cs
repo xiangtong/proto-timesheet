@@ -24,10 +24,10 @@ namespace Workday.Business
             return TimeSheetDataAccess.VerifyTime(thistime);
         }
 
-        public static List<TsForView> GetTimeByUser(int userid, DateTime begindate, DateTime enddate, int type, int deptid = 0)
+        public static List<TsForView> GetTimeByUser(int userid, DateTime begindate, DateTime enddate, int type)
         {
             List<TsForView> TimeViews = new List<TsForView>();
-            TimeViews = TimeSheetDataAccess.GetTimeByUser(userid, begindate, enddate, type, deptid);
+            TimeViews = TimeSheetDataAccess.GetTimeByUser(userid, begindate, enddate, type);
             if (TimeViews != null)
             {
                 foreach (TsForView item in TimeViews)
@@ -38,10 +38,23 @@ namespace Workday.Business
                         item.TsRRImgUrl = "~/img/approve.jpg";
                     else if (item.ReviewResult == TsReviewResult.Refused)
                         item.TsRRImgUrl = "~/img/refuse.png";
-
                 }
             }
             return TimeViews;
+        }
+
+        public static UserList GetUserList(int managerid)
+        {
+            UserList Users = new UserList();
+            Users=TimeSheetDataAccess.GetUserList(managerid);
+            if(Users.UserDict!=null)
+                Users.UserDict.Add("All",-1);
+            return Users;
+        }
+
+        public static bool ApproveTime(TsForView TimeSheet)
+        {
+            return TimeSheetDataAccess.ApproveTime(TimeSheet);
         }
     }
 }

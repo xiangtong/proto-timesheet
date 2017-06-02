@@ -93,4 +93,9 @@ namespace Workday.Common
         public int resultid { get; set; }
         public string resultdesc { get; set; }
     }
+
+    public class UserList
+    {
+        public Dictionary<string, int> UserDict = new Dictionary<string, int>();
+    }
 }

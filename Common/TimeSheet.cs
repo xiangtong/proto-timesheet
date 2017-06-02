@@ -39,9 +39,17 @@ namespace Workday.Common
 
         public string TsRRImgUrl { get; set; }  //approval img or refuse img or not process img
 
-        public float ApprovedDuration { get; set; }
+        public string ApprovedDuration { get; set; }
 
         public string RefuseReason { get; set; }
+
+        public string ReviewedBy { get; set; }
+
+        public int ReviewedUserId { get; set; }
+
+        public string ReviewDate { get; set; }
+
+
     }
 
     public enum TsReviewResult

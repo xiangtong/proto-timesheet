@@ -56,8 +56,10 @@ namespace Workday.Web
                     int userid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
                     List<TsForView> TimeSheets = new List<TsForView>();
                     List<TsForView> MTimeSheets = new List<TsForView>();
+                    BindUserDrop();
+                    int selectuserid = Int32.Parse(SelectUserDrop.SelectedValue.ToString());
                     TimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 0);
-                    MTimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 1);
+                    MTimeSheets = TimeSheetBusiness.GetTimeByUser(selectuserid, Monday, Sunday, 1);
                     TimeSheetGridView.DataSource = TimeSheets;
                     TimeSheetGridView.DataBind();
                     ManagerTimeSheetGridView.DataSource = MTimeSheets;
@@ -213,8 +215,9 @@ namespace Workday.Web
                 int userid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
                 List<TsForView> TimeSheets = new List<TsForView>();
                 List<TsForView> MTimeSheets = new List<TsForView>();
+                int selectuserid = Int32.Parse(SelectUserDrop.SelectedValue.ToString());
                 TimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 0);
-                MTimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 1);
+                MTimeSheets = TimeSheetBusiness.GetTimeByUser(selectuserid, Monday, Sunday, 1);
                 TimeSheetGridView.DataSource = TimeSheets;
                 TimeSheetGridView.DataBind();
                 ManagerTimeSheetGridView.DataSource = MTimeSheets;
@@ -245,8 +248,98 @@ namespace Workday.Web
                     Eimg.ImageUrl = imageurl2;
                     //Eimg.Attributes.Add("OnMouseOver", "popupeimg(imageurl2);");
                 }
+                if(TimeSheet.ReviewResult!= Common.TsReviewResult.NoProcess)
+                {
+                    Button ApproveT = e.Row.FindControl("App_Time") as Button;
+                    Button RefuseT = e.Row.FindControl("Ref_Time") as Button;
+                    ApproveT.Visible = false;
+                    RefuseT.Visible = false;
+                }
             }
         }
-    
+
+        protected void BindUserDrop()
+        {
+            if (HttpContext.Current.Session["UserID"] != null)
+            {
+                int managerid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
+                UserList Users = new UserList();
+                Users = TimeSheetBusiness.GetUserList(managerid);
+                if (Users.UserDict != null)
+                {
+                    SelectUserDrop.DataSource = Users.UserDict;
+                    SelectUserDrop.DataTextField = "Key";
+                    SelectUserDrop.DataValueField = "Value";
+                    SelectUserDrop.DataBind();
+                    SelectUserDrop.SelectedIndex = 0;
+                }
+                else
+                {
+                    SelectUserDrop.Items.Insert(0, new ListItem("null", "0"));
+                    SelectUserDrop.SelectedIndex = 0;
+                }
+            }
+
+        }
+
+        protected void SelectUserDrop_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (HttpContext.Current.Session["UserID"] != null)
+            {
+                DateTime SelectDay = Calendar1.SelectedDate;
+                DateTime Monday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 1);
+                DateTime Sunday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 7);
+                int userid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
+                List<TsForView> MTimeSheets = new List<TsForView>();
+                int selectuserid = Int32.Parse(SelectUserDrop.SelectedValue.ToString());
+                if(selectuserid!=-1)
+                    MTimeSheets = TimeSheetBusiness.GetTimeByUser(selectuserid, Monday, Sunday, 1);
+                else  //select all users's time sheets
+                    MTimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 2);
+                ManagerTimeSheetGridView.DataSource = MTimeSheets;
+                ManagerTimeSheetGridView.DataBind();
+            }
+        }
+
+        protected void Approve_Refuse_Time(object sender, GridViewCommandEventArgs e)
+        {
+            //throw new NotImplementedException();
+            TsForView TimeSheet1=new TsForView();
+            DateTime now = DateTime.Now;
+            string Today = now.ToString("MM/dd/yyyy");
+            int index = Convert.ToInt32(e.CommandArgument);
+            GridViewRow row = ManagerTimeSheetGridView.Rows[index];
+            TimeSheet1.WorkDuration= row.Cells[8].Text;
+            TimeSheet1.TimeSheetId = new Guid(ManagerTimeSheetGridView.DataKeys[index].Value.ToString());
+            TimeSheet1.ReviewDate = Today;
+            if (Session["UserID"] != null)
+                TimeSheet1.ReviewedUserId = Convert.ToInt32(Session["UserID"]);
+            if (e.CommandName == "Approve_Time")
+            {
+                if (TimeSheetBusiness.ApproveTime(TimeSheet1) == true)
+                {
+                    DateTime SelectDay = Calendar1.SelectedDate;
+                    DateTime Monday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 1);
+                    //DateTime Monday = SelectDay.AddDays(-10);
+                    DateTime Sunday = SelectDay.AddDays(-(int)SelectDay.DayOfWeek + 7);
+                    if (HttpContext.Current.Session["UserID"] != null)
+                    {
+                        int userid = Convert.ToInt32(HttpContext.Current.Session["UserID"].ToString());
+                        List<TsForView> TimeSheets = new List<TsForView>();
+                        List<TsForView> MTimeSheets = new List<TsForView>();
+                        int selectuserid = Int32.Parse(SelectUserDrop.SelectedValue.ToString());
+                        TimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 0);
+                        if(selectuserid!=-1)
+                            MTimeSheets = TimeSheetBusiness.GetTimeByUser(selectuserid, Monday, Sunday, 1);
+                        else
+                            MTimeSheets = TimeSheetBusiness.GetTimeByUser(userid, Monday, Sunday, 2);
+                        TimeSheetGridView.DataSource = TimeSheets;
+                        TimeSheetGridView.DataBind();
+                        ManagerTimeSheetGridView.DataSource = MTimeSheets;
+                        ManagerTimeSheetGridView.DataBind();
+                    }
+                }
+            }
+        }
     }
 }

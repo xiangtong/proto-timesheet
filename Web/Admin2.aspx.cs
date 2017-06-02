@@ -220,11 +220,15 @@ namespace Workday.Web
         {
             AllUserGridView.EditIndex = e.NewEditIndex;
             BindGridView(1);  //1 means in edit mode
-
             int userid = Int32.Parse(AllUserGridView.Rows[e.NewEditIndex].Cells[0].Text);
-            int deptid;
-            if (AllUserGridView.DataKeys[e.NewEditIndex]["DeptId"].ToString() != "" & AllUserGridView.DataKeys[e.NewEditIndex]["DeptId"] != null)
-                deptid = Convert.ToInt32(AllUserGridView.DataKeys[e.NewEditIndex]["DeptId"].ToString());
+            int deptid=0;
+            if ( AllUserGridView.DataKeys[e.NewEditIndex]["DeptId"] != null)
+            {
+                if(AllUserGridView.DataKeys[e.NewEditIndex]["DeptId"].ToString() != "")
+                {
+                    deptid = Convert.ToInt32(AllUserGridView.DataKeys[e.NewEditIndex]["DeptId"].ToString());
+                }
+            }
             else
                 deptid = 0;
             var DeptDrop = AllUserGridView.Rows[e.NewEditIndex].FindControl("Dept_Drop") as DropDownList;

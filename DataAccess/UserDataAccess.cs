@@ -229,9 +229,9 @@ namespace Workday.DataAccess
         }
 
 
-        public static SecretQuestion GetSecretQuestion()
+        public static Workday.Common.SecretQuestion GetSecretQuestion()
         {
-            Common.SecretQuestion Secret = new SecretQuestion();
+            Workday.Common.SecretQuestion Secret = new Workday.Common.SecretQuestion();
             //int iuserstatus;
             string sql = "select * from [SecretQuestion]";
             using (SqlConnection conn = new SqlConnection(_connectionString))

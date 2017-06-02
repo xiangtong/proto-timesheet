@@ -144,7 +144,7 @@ namespace Workday.DataAccess
                     {
                         while (result.Read())
                         {
-                            Dept dept = new Dept();
+                            Workday.Common.Dept dept = new Workday.Common.Dept();
                             dept.DeptId = result.GetInt32(0);
                             dept.DeptName = result.GetString(1);
                             if(!result.IsDBNull(2))
@@ -177,9 +177,9 @@ namespace Workday.DataAccess
             return Depts;
         }
 
-        public static List<Dept> GetAllDepts()
+        public static List<Workday.Common.Dept> GetAllDepts()
         {
-            List<Dept> Depts = new List<Dept>();
+            List<Workday.Common.Dept> Depts = new List<Workday.Common.Dept>();
             string sql = "select d.DeptId,d.DeptName,d.ParentId,d.ParentName,e.UserId as ManagerId, e.UserName as ManagerName from(select a.DeptId, a.DeptName, b.DeptId as ParentId, b.DeptName as ParentName, a.Manager from Dept a LEFT join Dept b on a.ParentDept = b.DeptId) as d left join[User1] as e on d.Manager = e.UserId";
             using (SqlConnection conn = new SqlConnection(_conn))
             {
@@ -194,7 +194,7 @@ namespace Workday.DataAccess
                     {
                         while (result.Read())
                         {
-                            Dept dept = new Dept();
+                            Workday.Common.Dept dept = new Workday.Common.Dept();
                             dept.DeptId = result.GetInt32(0);
                             dept.DeptName = result.GetString(1);
                             if (!result.IsDBNull(2))

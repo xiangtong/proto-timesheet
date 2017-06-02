@@ -80,24 +80,38 @@
                 console.log("Video capture error: ", error.code);
             };
 
-            // 获取摄像头的方式
-            if (navigator.getUserMedia) { // 标准
-                navigator.getUserMedia(videoObj, function (stream) {
-                    video.src = stream;
+            // Prefer camera resolution nearest to 1280x720.
+            var constraints = { audio: false, video: { width: 1280, height: 720 } };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+            .then(function (mediaStream) {
+                var video = document.querySelector('video');
+                video.srcObject = mediaStream;
+                video.onloadedmetadata = function (e) {
                     video.play();
-                }, errBack);
-            } else if (navigator.webkitGetUserMedia) { // WebKit浏览器
-                navigator.webkitGetUserMedia(videoObj, function (stream) {
-                    video.src = window.URL.createObjectURL(stream);
-                    video.play();
-                }, errBack);
-            }
-            else if (navigator.mozGetUserMedia) { // Firefox浏览器
-                navigator.mozGetUserMedia(videoObj, function (stream) {
-                    video.src = window.URL.createObjectURL(stream);
-                    video.play();
-                }, errBack);
-            }
+                };
+            })
+            .catch(function (err) { console.log(err.name + ": " + err.message); }); // always check for errors at the end.
+
+            //过时的方法，新的浏览器已经不支持  https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#Frame_rate
+            //// 获取摄像头的方式
+            //if (navigator.getUserMedia) { // 标准
+            //    navigator.getUserMedia(videoObj, function (stream) {
+            //        video.src = stream;
+            //        video.play();
+            //    }, errBack);
+            //} else if (navigator.webkitGetUserMedia) { // WebKit浏览器
+            //    navigator.webkitGetUserMedia(videoObj, function (stream) {
+            //        video.src = window.URL.createObjectURL(stream);
+            //        video.play();
+            //    }, errBack);
+            //}
+            //else if (navigator.mozGetUserMedia) { // Firefox浏览器
+            //    navigator.mozGetUserMedia(videoObj, function (stream) {
+            //        video.src = window.URL.createObjectURL(stream);
+            //        video.play();
+            //    }, errBack);
+            //}
 
             // Trigger photo take and upload 
             //document.getElementById("snap").addEventListener("click", function () {
@@ -171,8 +185,12 @@
     </asp:GridView>
 
     <br />
+    <asp:DropDownList ID="SelectUserDrop" runat="server" OnSelectedIndexChanged="SelectUserDrop_SelectedIndexChanged" AutoPostBack="True" AppendDataBoundItems="true">
+    </asp:DropDownList>
+
+    <br />
     <asp:GridView ID="ManagerTimeSheetGridView" AutoGenerateColumns="False" runat="server" 
-        DataKeyNames="TimeSheetId" OnRowDataBound="ManagerTimeSheetGridView_RowDataBound" >
+        DataKeyNames="TimeSheetId" OnRowDataBound="ManagerTimeSheetGridView_RowDataBound" OnRowCommand="Approve_Refuse_Time" >
        <Columns>
             <asp:BoundField HeaderText="UserName" DataField="UserName" ReadOnly="true" />
             <asp:BoundField HeaderText="Date_" DataField="Date" ReadOnly="true" />
@@ -198,6 +216,21 @@
             </asp:TemplateField>
             <asp:BoundField HeaderText="Refuse_Reason" DataField="RefuseReason" ReadOnly="true"/>
             <asp:BoundField HeaderText="Approved(h)" DataField="ApprovedDuration" ReadOnly="true"/>
+            <asp:BoundField HeaderText="ReviewedBy" DataField="ReviewedBy" ReadOnly="true"/>
+            <asp:TemplateField HeaderText="Approve">
+                <ItemTemplate>
+                    <asp:Button ID="App_Time"  Runat="Server" CausesValidation="false" Text="Approve"
+                    CommandName="Approve_Time"
+                    CommandArgument='<%#((GridViewRow) Container).RowIndex %>'/>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:TemplateField HeaderText="Refuse">
+                <ItemTemplate>
+                    <asp:Button ID="Ref_Time"  Runat="Server" CausesValidation="false" Text="Refuse"
+                    CommandName="Refuse_Time"
+                    CommandArgument='<%#((GridViewRow) Container).RowIndex %>'/>
+                </ItemTemplate>
+            </asp:TemplateField>
         </Columns>
     </asp:GridView>
 
